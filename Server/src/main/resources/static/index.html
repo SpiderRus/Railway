@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Railway</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.css">
+    <script src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
+    <script src="js/temperature_graph.js"></script>
+    <script src="js/speed_graph.js"></script>
+
+    <style>
+        body, html { height: 100%; }
+        .ct-series-a .ct-line {
+            /* Set the colour of this series line */
+            stroke: blue;
+            /* Control the thikness of your lines */
+            stroke-width: 2px;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        let items = [];
+        let currentIndex = undefined;
+
+        function createTrainTab(item) {
+            setTimeout(() => initSpeed(item.id, '.ct-chart1'), 1);
+
+            setTimeout(() => initTemp(item.id, '.ct-chart2'), 1);
+
+            return "<div class=\"card-body\">" +
+                    "<h5 class=\"card-title\">" + item.id + "</h5>" +
+                    "<h6 class=\"card-subtitle mb-2 text-body-secondary\">Локомотив</h6>" +
+                    "</div>" +
+                    "<div class=\"card-img-bottom\">" +
+                        "<div class=\"ct-chart1\" style=\"height: 400px;\"></div>" +
+                        "<div class=\"ct-chart2\" style=\"height: 350px;\"></div>" +
+                    "</div>";
+        }
+
+        function destroyTrainTab(item) {
+            destroySpeed();
+            destroyTemp();
+        }
+
+        function onTabClick(index) {
+            for (let i = 0; i < items.length; i++) {
+                const tab = document.getElementById("tab_" + i);
+
+                if (i === index) {
+                    tab.setAttribute("class", "nav-link active");
+                    tab.setAttribute("aria-current", "page");
+                } else {
+                    tab.setAttribute("class", "nav-link");
+                    tab.removeAttribute("aria-current");
+                }
+            }
+
+            if (currentIndex === undefined || currentIndex !== index) {
+                if (currentIndex !== undefined) {
+                    if (items[index].type === "TRAIN") {
+                        destroyTrainTab(items[currentIndex]);
+                    }
+                }
+
+                if (items[index].type === "TRAIN") {
+                    document.getElementById("pageContent").innerHTML = createTrainTab(items[index]);
+                } else
+                    document.getElementById("pageContent").innerHTML = "";
+
+                currentIndex = index;
+            }
+        }
+
+        async function init() {
+            items = await (await fetch("/api/scheme-items/all")).json();
+
+            let innerHtml = "";
+
+            for (let i = 0; i < items.length; i++)
+                innerHtml += "<li class=\"nav-item\"><a id=\"tab_" + i +
+                                    "\" class=\"nav-link\" href=\"javascript:onTabClick(" + i + ")\">" + items[i].id + "</a></li>";
+
+            document.getElementById("itemsList").innerHTML = innerHtml;
+        }
+
+        window.onload = init;
+    </script>
+
+    <ul id="itemsList" class="nav nav-tabs"></ul>
+
+    <div id="pageContent" class="card" style="padding: 20px;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+</body>
+</html>

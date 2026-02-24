@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.css">
+    <script src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
+    <style>
+        body, html { height: 99%; }
+        div { height: 100%; }
+
+        .ct-series-a .ct-line {
+            /* Set the colour of this series line */
+            stroke: blue;
+            /* Control the thikness of your lines */
+            stroke-width: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="ct-chart"></div>
+    <script>
+        const formatter = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        const chart = new Chartist.Line('.ct-chart', {
+            labels: [],
+            series: []
+        }, {
+            // lineSmooth: Chartist.Interpolation.simple({
+            //     divisor: 2
+            // }),
+            lineSmooth: Chartist.Interpolation.none(),
+            showPoint: true,
+            fullWidth: true,
+            chartPadding: {
+                right: 40
+            },
+            axisX: {
+                type: Chartist.FixedScaleAxis,
+                divisor: 8,
+                labelInterpolationFnc: (value) => formatter.format(new Date(value))
+            },
+            axisY: {
+                type: Chartist.AutoScaleAxis,
+                onlyInteger: true,
+                // type: Chartist.FixedScaleAxis,
+                // ticks: [0, 50, 75, 100],
+                low: 0,
+                high: 100
+            }
+        });
+
+        const urlParams = new URLSearchParams(window.location.search);
+        async function updateData() {
+            do {
+                let now = Date.now();
+
+                let response = await (await fetch('/api/speed-chart/' + urlParams.get('item'))).json();
+
+                chart.update({
+                    series: [{
+                        data: response.map((point) => point.y === null ? {
+                            x: point.x,
+                            y: undefined
+                        } : point)
+                    }]
+                });
+
+                let timeout = 40 - (Date.now() - now);
+
+                if (timeout > 0) {
+                    setTimeout(updateData, timeout);
+                    break;
+                }
+            } while (true);
+        }
+
+        setTimeout(updateData, 200);
+    </script>
+</body>
+</html>

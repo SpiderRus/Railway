@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: railway
+  r2dbc:
+    username: spider
+    password: spider
+    # url: r2dbc:postgresql://beelink-linux.home:5432/postgres?currentSchema=railway_new
+    url: r2dbc:postgresql://localhost:5432/postgres?currentSchema=railway_new
+    pool:
+      enabled: true
+      initial-size: 4
+      max-size: 20
+      max-idle-time: 10m
+      max-acquire-time: 20s
+      max-create-connection-time: 20s
+      # validation-query: SELECT 1
+
+  flyway:
+    locations: classpath:db/postgres/migration
+
+#  swagger-ui:
+#    path: /swagger-ui.html
+
+
+messaging:
+  udp:
+    port: 10037
+

@@ -1,0 +1,853 @@
+@import url('https://fonts.googleapis.com');
+
+/* Основной контейнер карточки */
+.steampunk-card {
+    /*background: #2b1d0e; !* Глубокий коричневый *!*/
+    background: radial-gradient(circle, #e3c18d 0%, #c4a46d 100%);
+    border: 4px solid #8b5a2b !important; /* Медная рамка */
+    border-radius: 0; /* Викторианский стиль не любит скруглений */
+    box-shadow:
+            inset 0 0 15px rgba(0,0,0,0.5),
+            5px 5px 15px rgba(0,0,0,0.7);
+    color: #d4af37; /* Цвет латуни */
+    font-family: 'Special Elite', cursive; /* Шрифт печатной машинки */
+    position: relative;
+    overflow: visible;
+}
+
+/* Эффект старой бумаги внутри */
+.steampunk-card .card-body {
+    /*background: radial-gradient(circle, #e3c18d 0%, #c4a46d 100%);*/
+    color: #3d2b1f;
+    margin: 10px;
+    border: 1px solid #5d3a1a !important;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+}
+
+/* Имитация заклепок по углам */
+.steampunk-card::before,
+.steampunk-card::after {
+    content: "•";
+    position: absolute;
+    font-size: 24px;
+    color: #4a3219;
+    text-shadow: 1px 1px 0px #aa8445;
+}
+
+.steampunk-card::before { top: 2px; left: 5px; }
+.steampunk-card::after { bottom: 2px; right: 5px; }
+
+.steampunk-btn {
+    background: linear-gradient(145deg, #8b4513, #5d2906);
+    border: 2px solid #3d1f05;
+    color: #ffd700 !important;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 1px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+    transition: all 0.3s ease;
+}
+
+.steampunk-btn:hover {
+    filter: brightness(1.2) sepia(0.5);
+    transform: translateY(-2px);
+}
+
+.steampunk-table {
+    background-color: rgba(0, 0, 0, 0) !important;
+    border: 0;
+    /*color: #2b1d0e !important;*/
+    /*font-family: 'Special Elite', cursive;*/
+    /*border-collapse: separate;*/
+    /*border-spacing: 0;*/
+}
+
+/* Оформление ячейки как корпуса прибора */
+.steampunk-table td {
+    padding: 2px !important;
+    background: #0a0a0a !important; /* Глубокая темнота внутри прибора */
+    border: 1px solid #4a3219 !important; /* Толстая литая рама */
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+            inset 0 0 20px #000,
+            0 0 5px rgba(0,0,0,0.5);
+    vertical-align: middle;
+}
+
+/* Стеклянная линза с мощным бликом */
+.steampunk-table td::before {
+    content: "";
+    position: absolute;
+    top: -10%; left: -10%; right: -10%; bottom: -10%;
+
+    /* Эффект сферического стекла */
+    background: radial-gradient(
+            circle at 30% 30%,
+            rgba(255, 255, 255, 0.4) 0%,   /* Яркий точечный блик */
+            rgba(255, 255, 255, 0.1) 15%,  /* Мягкий свет */
+            transparent 50%,               /* Прозрачность в центре */
+            rgba(0, 0, 0, 0.4) 85%         /* Затемнение по краям линзы */
+    );
+
+    /* Эффект "старой оптики" (синеватый или желтоватый отлив) */
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    z-index: 3;
+    pointer-events: none;
+}
+
+/* Дополнительный линейный блик ("световая полоса") */
+.steampunk-table td::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(
+            110deg,
+            transparent 40%,
+            rgba(255, 255, 255, 0.05) 45%,
+            rgba(255, 255, 255, 0.15) 50%,
+            rgba(255, 255, 255, 0.05) 55%,
+            transparent 60%
+    );
+    z-index: 4;
+    pointer-events: none;
+}
+
+/* Контент внутри "вакуума" */
+.steampunk-table td > * {
+    position: relative;
+    z-index: 2;
+    display: inline-block;
+
+    /* Свечение газоразрядной трубки */
+    color: #ffaa00;
+    text-shadow:
+            0 0 8px rgba(255, 170, 0, 0.7),
+            0 0 2px rgba(255, 255, 255, 0.5);
+
+    letter-spacing: 1px;
+    filter: blur(0.3px); /* Легкое размытие для имитации аналогового экрана */
+}
+
+.steampunk-table td a {
+    color: #ff9900 !important; /* Янтарный цвет */
+    text-decoration: none !important;
+    position: relative;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    /* Эффект свечения нити */
+    text-shadow: 0 0 8px rgba(255, 153, 0, 0.6);
+}
+
+/* Эффект при наведении — "накал" увеличивается */
+.steampunk-table td a:hover {
+    color: #fff !important;
+    text-shadow:
+            0 0 12px #ff4500,
+            0 0 20px #ff8c00;
+    letter-spacing: 1px; /* Эффект расширения от тепла */
+}
+
+/* Нижнее подчеркивание как медная проволока */
+.steampunk-table td a::before {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #8b5a2b, transparent);
+    box-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
+    transition: transform 0.3s ease;
+    transform: scaleX(0.7);
+}
+
+@keyframes spin-gear {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Анимация пульсации света (медленное раздувание углей) */
+@keyframes boiler-pulse {
+    0% { box-shadow: 0 0 5px #ff4500, inset 0 0 5px rgba(255,255,255,0.3); }
+    50% { box-shadow: 0 0 20px #ff8c00, inset 0 0 10px rgba(255,140,0,0.5); }
+    100% { box-shadow: 0 0 5px #ff4500, inset 0 0 5px rgba(255,255,255,0.3); }
+}
+
+/* Анимация вращения (прерывистая, как у механических часов) */
+@keyframes gear-tick {
+    0% { transform: translateY(-50%) rotate(0deg); }
+    25% { transform: translateY(-50%) rotate(90deg); }
+    50% { transform: translateY(-50%) rotate(180deg); }
+    75% { transform: translateY(-50%) rotate(270deg); }
+    100% { transform: translateY(-50%) rotate(360deg); }
+}
+
+.gear-icon {
+    width: 24px;
+    height: 24px;
+    filter: sepia(1) saturate(5) hue-rotate(-30deg); /* Медный оттенок */
+    animation: spin-gear 4s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
+.gauge-indicator {
+    width: 40px;
+    height: 40px;
+    /*background: url('https://img.icons8.com') no-repeat center;*/
+    background-size: contain;
+    filter: invert(15%) sepia(95%) saturate(693%) hue-rotate(346deg) brightness(90%) contrast(85%);
+    display: inline-block;
+}
+
+/* Основной контейнер навигации — "Медная труба" */
+.steampunk-nav {
+    background: linear-gradient(180deg, #4e342e 0%, #2b1d0e 50%, #4e342e 100%);
+    border-top: 3px solid #8b5a2b;
+    border-bottom: 3px solid #8b5a2b;
+    padding: 10px 0;
+    box-shadow: inset 0 5px 10px rgba(0,0,0,0.5), 0 5px 15px rgba(0,0,0,0.3);
+    position: relative;
+}
+
+/* Ссылки навигации */
+.steampunk-nav .nav-link {
+    color: #d4af37 !important; /* Латунь */
+    font-family: 'Special Elite', cursive;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 10px 25px;
+    transition: all 0.4s ease;
+    position: relative;
+    border: 1px solid transparent;
+    overflow: visible; /* Чтобы пар не обрезался */
+}
+
+/* Эффект "Клапана" при наведении */
+.steampunk-nav .nav-link:hover {
+    color: #fff !important;
+    text-shadow: 0 0 8px #ff8c00, 0 0 15px #ff4500; /* Свечение углей */
+    background: rgba(139, 90, 43, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Анимация движения пара */
+@keyframes steam-rise {
+    0% {
+        transform: translateY(0) scale(0.5) translateX(0);
+        opacity: 0;
+    }
+    20% {
+        opacity: 0.6;
+    }
+    100% {
+        transform: translateY(-40px) scale(2) translateX(10px);
+        opacity: 0;
+        filter: blur(8px);
+    }
+}
+
+/* Создаем "облако пара" при наведении */
+.steampunk-nav .nav-link:hover::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 15px;
+    height: 15px;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    pointer-events: none; /* Чтобы пар не мешал клику */
+
+    /* Запускаем 3 "струи" пара с разными задержками */
+    box-shadow:
+            -10px 0 10px white,
+            10px 5px 10px white;
+    animation: steam-rise 1.5s infinite ease-out;
+}
+
+/* Добавим легкий звук "пш-ш-ш" визуально через вторую струю */
+.steampunk-nav .nav-link:hover::before {
+    content: "";
+    position: absolute;
+    top: 5px;
+    left: 30%;
+    width: 10px;
+    height: 10px;
+    background: rgba(200, 200, 200, 0.3);
+    border-radius: 50%;
+    animation: steam-rise 2s infinite ease-out 0.5s; /* Задержка 0.5с */
+}
+
+/* Активная ссылка — эффект горящей лампы */
+.steampunk-nav .nav-link.active {
+    background: radial-gradient(circle, #8b5a2b 0%, #2b1d0e 100%);
+    color: #ffd700 !important;
+    border: 1px solid #d4af37;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+}
+
+/* Разделители в виде заклепок */
+.steampunk-nav .nav-item:not(:last-child)::after {
+    content: "⚙";
+    color: #5d3a1a;
+    position: absolute;
+    right: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+}
+
+/* Сама эмблема (манометр или вентиль) */
+.steampunk-nav::before {
+    content: "⚙";
+    position: absolute;
+    left: 15px;
+    top: calc(50% - 20px);
+    transform: translateY(-50%); /* Оставляем это для выравнивания блока */
+
+    /* Используем Flex для выравнивания символа внутри круга */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 40px;
+    height: 40px;
+
+    /* Убираем line-height, он больше не нужен */
+    line-height: normal;
+
+    /* Остальные стили (фон, рамка) без изменений */
+    background: radial-gradient(circle, #d4af37 0%, #8b5a2b 100%);
+    border: 3px solid #3d1f05;
+    border-radius: 50%;
+
+    /* 2. Добавляем саму иконку через маску */
+    /* Это позволит иконке принять цвет 'background-color' ниже */
+    -webkit-mask-image: url('http://localhost:8080/icons8-gear-24.png');
+    mask-image: url('http://localhost:8080/icons8-gear-24.png');
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: 70%; /* Размер иконки внутри круга */
+    mask-size: 70%;
+
+    /* Анимация (опционально) */
+    /* Применяем анимации */
+    animation:
+        /*gear-tick 8s steps(4) infinite, !* Вращение рывками *!*/
+            spin-gear 5s linear infinite,
+            boiler-pulse 3s ease-in-out infinite; /* Свечение */
+
+    /* Важно для корректного вращения при абсолютном позиционировании */
+    transform-origin: center center;
+}
+
+/* Добавим "крепление" (тень под бляшкой) */
+.steampunk-nav::after {
+    content: "";
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    z-index: 1;
+}
+
+/* Основной контейнер — теперь размеры в em */
+.steampunk-semaphore {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.3em; /* Динамический отступ */
+    background: linear-gradient(145deg, #3d2b1f, #1a120b);
+    padding: 0.8em 0.4em;
+    border: 0.25em solid #8b5a2b;
+    border-radius: 1.4em;
+    box-shadow:
+            0.3em 0.3em 1em rgba(0,0,0,0.8),
+            inset 0 0 0.6em #000;
+    position: relative;
+
+    /* Базовый размер, который можно переопределить */
+    /*font-size: 20px;*/
+}
+
+/* Контейнер линзы подстраивается под font-size */
+.lens-container {
+    position: relative;
+    width: 3em;  /* Размер зависит от текста */
+    height: 3em;
+    background: #050505;
+    border-radius: 50%;
+    border: 0.15em solid #5d3a1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* Эффект стекла */
+.lens-glass {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2), transparent 60%);
+    border-radius: 50%;
+    z-index: 3;
+}
+
+/* Лампы */
+.light {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    filter: blur(0.1em) brightness(0.2);
+    transition: all 0.5s ease;
+}
+
+/* Свечение теперь тоже масштабируется */
+.light.red.active {
+    background: #ff0000;
+    filter: blur(0.05em) brightness(1);
+    box-shadow: 0 0 1.5em #ff0000, inset 0 0 0.5em #fff;
+}
+
+.light.yellow.active {
+    background: #ffaa00;
+    filter: blur(0.05em) brightness(1);
+    box-shadow: 0 0 1.5em #ffaa00, inset 0 0 0.5em #fff;
+}
+
+.light.green.active {
+    background: #00ff41;
+    filter: blur(0.05em) brightness(1);
+    box-shadow: 0 0 1.5em #00ff41, inset 0 0 0.5em #fff;
+}
+
+
+.steampunk-gauge {
+    position: relative;
+    width: 5em;
+    height: 5em;
+    background: radial-gradient(circle, #2b1d0e 0%, #0a0a0a 100%);
+    border: 0.2em solid #8b5a2b;
+    border-radius: 50%;
+    box-shadow:
+            0 0.2em 0.5em rgba(0,0,0,0.8),
+            inset 0 0 0.5em #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Латунное кольцо вокруг шкалы */
+.gauge-ring {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border: 0.1em solid #d4af37;
+    border-radius: 50%;
+    opacity: 0.3;
+}
+
+/* Стекло (как у td) */
+.gauge-glass {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.15), transparent 60%);
+    border-radius: 50%;
+    z-index: 5;
+    pointer-events: none;
+}
+
+/* Стрелка */
+.gauge-needle {
+    position: absolute;
+    bottom: 50%;
+    left: 50%;
+    width: 0.1em;
+    height: 40%;
+    background: #ff4500; /* Раскаленная сталь */
+    transform-origin: bottom center;
+    /*transition: transform 0.6s cubic-bezier(0.4, 2.08, 0.55, 0.44); !* Эффект дрожания *!*/
+    transition: transform 1.0s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 4;
+    box-shadow:
+            0 0 10px #ff4500,
+            0 0 20px rgba(255, 69, 0, 0.5); /* Двойное свечение */
+}
+
+/* Центр стрелки (заклепка) */
+.gauge-center {
+    position: absolute;
+    width: 0.4em;
+    height: 0.4em;
+    background: #8b5a2b;
+    border: 0.05em solid #d4af37;
+    border-radius: 50%;
+    z-index: 6;
+}
+
+/* Шкала */
+.gauge-ticks {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    fill: none;
+    z-index: 2;
+    pointer-events: none;
+    /* Закругляем точки */
+    stroke-linecap: round;
+}
+
+/* Контейнер для крупных точек */
+.gauge-major-dots {
+    position: absolute;
+    width: 100%; height: 100%;
+    top: 0; left: 0;
+    pointer-events: none;
+}
+
+/* Единичная крупная точка */
+.major-dot {
+    position: absolute;
+    width: 0.3em;
+    height: 0.3em;
+    background: #d4af37;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 5px rgba(212, 175, 55, 0.8);
+    z-index: 2;
+}
+
+/* Мелкие точки оставляем в SVG, но чуть подправим */
+.ticks-minor {
+    stroke: #8b5a2b;
+    stroke-width: 1.5;
+    opacity: 0.5;
+}
+
+/* Чтобы точки шкалы реагировали на свет, добавим им базовую яркость */
+.major-dot, .ticks-minor {
+    filter: drop-shadow(0 0 1px rgba(255, 153, 0, 0.5));
+}
+
+/* Контейнер для цифр шкалы */
+.gauge-labels {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+/* Единичная цифра на шкале */
+.gauge-label {
+    position: absolute;
+    /*font-family: 'Special Elite', cursive; !* Стиль печатной машинки *!*/
+    font-size: 0.25em;
+    transform: translate(-50%, -50%);
+    color: #5d3a1a; /* В выключенном состоянии — тусклая бронза */
+    text-shadow: none;
+    opacity: 1;
+    transition:
+            color 0.4s ease,
+            opacity 0.4s ease,
+            text-shadow 0.4s ease,
+            transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Эффект мерцающей нити накала */
+.gauge-label.active {
+    color: #ffaa00 !important;
+    opacity: 1;
+    text-shadow:
+            0 0 8px rgba(255, 170, 0, 0.8),
+            0 0 2px #fff;
+    transform: translate(-50%, -50%) scale(1.1); /* Легкое увеличение */
+}
+
+/* Контейнер для динамической подсветки */
+.gauge-light-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 3; /* Поднимаем выше цифр и точек, но под стрелку */
+    /* Изменили overlay на screen для яркости на черном фоне */
+    mix-blend-mode: screen;
+    /*transition: transform 0.6s cubic-bezier(0.4, 2.08, 0.55, 0.44);*/
+    transition: transform 1.0s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Более агрессивный градиент подсветки */
+.gauge-spotlight {
+    width: 100%; height: 100%;
+    background: radial-gradient(
+            circle at 50% 15%,
+            rgba(255, 170, 0, 0.6) 0%,   /* Яркий центр */
+            rgba(255, 69, 0, 0.15) 25%,   /* Ореол */
+            transparent 50%              /* Плавный уход в темноту */
+    );
+    filter: blur(8px); /* Сильнее размываем для эффекта "тумана" */
+}
+
+/* Эффект дрожания стрелки под давлением */
+@keyframes needle-vibrate {
+    0% { transform: translateX(-50%) rotate(var(--angle)) translateY(0); }
+    25% { transform: translateX(-50%) rotate(calc(var(--angle) + 1.5deg)) translateY(-0.5px); }
+    75% { transform: translateX(-50%) rotate(calc(var(--angle) - 1.5deg)) translateY(0.5px); }
+    100% { transform: translateX(-50%) rotate(var(--angle)) translateY(0); }
+}
+
+/* Пульсация аварийного освещения корпуса */
+@keyframes overheat-glow {
+    0% { box-shadow: 0 0.2em 0.5em rgba(0,0,0,0.8), inset 0 0 0.5em #000; border-color: #8b5a2b; }
+    50% { box-shadow: 0 0 1.5em rgba(255, 0, 0, 0.6), inset 0 0 1.2em rgba(255, 0, 0, 0.4); border-color: #ff4500; }
+    100% { box-shadow: 0 0.2em 0.5em rgba(0,0,0,0.8), inset 0 0 0.5em #000; border-color: #8b5a2b; }
+}
+
+/* Применяем классы состояния перегрева */
+.steampunk-gauge.overheat {
+    animation: overheat-glow 0.8s infinite ease-in-out;
+}
+
+.steampunk-gauge.overheat .gauge-needle {
+    /* Переопределяем анимацию для дрожания */
+    animation: needle-vibrate 0.1s infinite linear;
+    background: #fff !important; /* Стрелка белеет от жара */
+    box-shadow: 0 0 15px #fff, 0 0 25px #ff0000;
+}
+
+/* Общий контейнер механизма */
+.rail-switch-box {
+    position: relative;
+    width: 5em;
+    height: 5em;
+    background: #1a120b;
+    border: 0.3em solid #4e342e;
+    border-radius: 0.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 5px 5px 15px rgba(0,0,0,0.6);
+}
+
+/* Диск с гравировкой */
+.switch-dial-base {
+    width: 85%;
+    height: 85%;
+    border: 2px solid #8b5a2b;
+    border-radius: 50%;
+    background: radial-gradient(circle, #e3c18d 0%, #c4a46d 100%);
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+
+/* Метки направлений */
+.dial-label {
+    position: absolute;
+    font-family: 'Special Elite', cursive;
+    font-size: 0.7em;
+    color: #2b1d0e;
+    font-weight: bold;
+    opacity: 0.6;
+}
+
+/* Рычаг с противовесом */
+.lever-arm {
+    position: absolute;
+    width: 0.35em;
+    height: 75%;
+    background: linear-gradient(90deg, #8b4513, #5d2906);
+    border: 1px solid #3d1f05;
+    bottom: 12.5%; /* Центрирование по оси */
+    transform-origin: center center;
+    transition: transform 0.7s cubic-bezier(0.68, -0.55, 0.26, 1.55);
+    z-index: 5;
+}
+
+/* Набалдашник рычага */
+.lever-knob {
+    position: absolute;
+    top: -0.4em;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1em;
+    height: 1em;
+    background: radial-gradient(circle, #d4af37, #8b5a2b);
+    border: 2px solid #3d1f05;
+    border-radius: 50%;
+}
+
+/* Станина механизма */
+.steampunk-switch {
+    position: relative;
+    width: 5em;
+    height: 5em;
+    background: #1a120b;
+    border: 0.3em solid #4e342e;
+    border-radius: 0.5em; /* Прямоугольное основание */
+    box-shadow: inset 0 0 15px #000, 5px 5px 15px rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+/* Центральный диск (циферблат) */
+.switch-dial {
+    width: 80%;
+    height: 80%;
+    border: 2px solid #8b5a2b;
+    border-radius: 50%;
+    background: radial-gradient(circle, #e3c18d 0%, #c4a46d 100%); /* Старая бумага */
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* Символы направлений (Гравировка) */
+.switch-label {
+    position: absolute;
+    font-size: 0.7em;
+    color: #2b1d0e;
+    font-weight: bold;
+    opacity: 0.7;
+}
+
+.label-top { top: 5%; }
+.label-side { right: 5%; transform: rotate(90deg); }
+
+/* Рычаг стрелки */
+.switch-lever {
+    position: absolute;
+    width: 0.4em;
+    height: 70%;
+    background: linear-gradient(90deg, #8b4513, #5d2906);
+    border: 1px solid #3d1f05;
+    border-radius: 0.2em;
+    z-index: 5;
+    transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    transform-origin: center center;
+}
+
+/* Наконечник рычага (балансир) */
+.lever-weight {
+    position: absolute;
+    top: -0.5em;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1.2em;
+    height: 1.2em;
+    background: radial-gradient(circle, #d4af37, #8b5a2b);
+    border: 2px solid #3d1f05;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+/* Индикаторное стекло (лампочка состояния) */
+.switch-status-lamp {
+    position: absolute;
+    bottom: 0.3em;
+    right: 0.3em;
+    width: 0.8em;
+    height: 0.8em;
+    border-radius: 50%;
+    border: 1px solid #000;
+    transition: all 0.5s ease;
+}
+
+.lamp-green { background: radial-gradient(circle, #00ff41, #004411); box-shadow: 0 0 10px #00ff41; }
+.lamp-red { background: radial-gradient(circle, #ff0000, #440000); box-shadow: 0 0 10px #ff0000; }
+
+/* Метка для левого направления */
+.label-left {
+    left: 5%;
+    transform: rotate(-90deg);
+}
+
+/* Сделаем лампу более информативной (желтый для отклонения) */
+.lamp-yellow {
+    background: radial-gradient(circle, #ffaa00, #553300);
+    box-shadow: 0 0 10px #ffaa00;
+}
+
+/* Контейнер рельса */
+.rail-h0-container {
+    padding: 10px;
+    display: inline-block;
+    border-radius: 4px;
+}
+
+/* Шпалы: эффект мореного дуба */
+.sleeper-h0 {
+    fill: #2b1d0e;
+    stroke: #1a120b;
+    stroke-width: 0.2;
+}
+
+/* Рельсы: полированная латунь */
+.rail-h0-metal {
+    fill: url(#brassH0);
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5));
+}
+
+/* Медные костыли (крепления) */
+.spike-h0 {
+    fill: #ffd700 !important; /* Яркое золото */
+    stroke: #3d1f05;
+    stroke-width: 0.2;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.6));
+}
+
+.rail-r2-metal {
+    fill: none; /* У дуги заливки нет, только stroke */
+    stroke: url(#brassH0);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
+}
+
+.sleeper-r2 {
+    fill: #2b1d0e;
+    stroke: #1a120b;
+    stroke-width: 0.2;
+}
+
+:root {
+    --sp-rail-gold: #d4af37;
+    --sp-rail-dark: #5d3a1a;
+    /*--sp-wood: #2b1d0e;*/
+    --sp-wood: #5d4037;
+    --sp-iron: #1a120b;
+    --sp-bolt: #ffd700;
+    --sp-shine: rgba(255, 255, 255, 0.3);
+    --sp-wood-grain: rgba(255, 255, 255, 0.1); /* Светлые волокна */
+    --sp-wood-crack: rgba(0, 0, 0, 0.3);       /* Темные трещины */
+    --sp-loco-black: #1a1a1a;
+    --sp-loco-copper: #b87333;
+    --sp-loco-brass: #d4af37;
+    --sp-loco-steam: rgba(255, 255, 255, 0.4);
+}
+
+.steampunk-canvas-container {
+    padding: 20px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+}
+
+/* Сам холст может иметь фильтры из CSS */
+.rail-canvas {
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.7));
+    border: 1px solid #333;
+}

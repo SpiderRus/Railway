@@ -1,0 +1,109 @@
+.App {
+  text-align: center;
+  height: 100%;
+  padding: 10px;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  min-height: 100vh;
+  /* 1. Наслаиваем несколько фонов: чертеж + текстура бумаги + градиент-виньетка */
+  background:
+    /* Виньетка (затемнение по углам) */
+          radial-gradient(circle, transparent 20%, rgba(0, 0, 0, 0.4) 100%),
+            /* Текстура чертежа (опционально - паттерн из шестеренок) */
+          url('2.png'),
+            /* Основной цвет состаренной бумаги */
+          #3d2b1f;
+
+  background-color: #2b1d0e;
+  background-attachment: fixed;
+  background-size: cover;
+
+  /* Эффект старой пожелтевшей бумаги через псевдоэлемент или фильтр */
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Создаем эффект "шума" и старой бумаги поверх всего */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  /* Текстура мелкого зерна/шума */
+  /*background-image: url('sandpaper.png');*/
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Добавляем "ржавую" рамку по краям всего экрана */
+/*body::after {*/
+/*  content: "";*/
+/*  position: fixed;*/
+/*  top: 0; left: 0; right: 0; bottom: 0;*/
+/*  border: 15px solid transparent;*/
+/*  !* Рамка с имитацией меди/заклепок *!*/
+/*  !*border-image: url('https://img.freepik.com') 30 round;*!*/
+/*  pointer-events: none;*/
+/*  z-index: 9999;*/
+/*  opacity: 0.5;*/
+/*}*/
+
+.Item-row-cards {
+  margin: 10px;
+}
+
+.no-borders {
+  margin: 0;
+  border: 0;
+  padding: 0;
+  font-size: 2pt;
+}
+
+button.accordion-button {
+  /*margin: 2px;*/
+  padding: 2px 10px;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+.App-grid {
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

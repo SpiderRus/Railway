@@ -1,0 +1,134 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/html" lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Motor configuration</title>
+
+<!--    <link href="bootstrap/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">-->
+<!--    <script src="bootstrap/bootstrap.min.js" crossorigin="anonymous"></script>-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+    <script>
+        async function loadPins(selector, pinObj) {
+            let pins = [];
+            for (let i = 0; i < pinObj.pins.length; i++) {
+                let pinNo = pinObj.pins[i];
+                pins[i] = document.createElement('option');
+                if (pinNo === pinObj.value)
+                    pins[i].setAttribute('selected', '');
+                pins[i].setAttribute('value', pinNo);
+                pins[i].innerText = pinNo;
+            }
+            selector.replaceChildren(...pins);
+        }
+
+        async function load() {
+            let response = await fetch('/motor/configuration', { method: 'GET' });
+
+            if (response.ok) {
+                let config = await response.json();
+
+                document.getElementById('motor.minPower').value = config.motor.minPower;
+                loadPins(document.getElementById('motor.plusPin'), config.motor.plusPin).then();
+                loadPins(document.getElementById('motor.minusPin'), config.motor.minusPin).then();
+                document.getElementById('motor.pwmResolution').innerText =
+                    config.motor.pwmResolution === undefined || config.motor.pwmResolution === null ? "-" : config.motor.pwmResolution;
+
+                document.getElementById('pid.Kp').value = config.pid.Kp;
+                document.getElementById('pid.Kd').value = config.pid.Kd;
+                document.getElementById('pid.Ki').value = config.pid.Ki;
+                document.getElementById('pid.maxError').value = config.pid.maxError;
+                document.getElementById('pid.delay').value = config.pid.delay;
+
+                document.getElementById('speedometer.maxRps').value = config.speedometer.maxRps;
+                document.getElementById('speedometer.mmPerTurn').value = config.speedometer.mmPerTurn;
+                document.getElementById('speedometer.pulsePerTurn').value = config.speedometer.pulsePerTurn;
+                loadPins(document.getElementById('speedometer.sensorPin'), config.speedometer.sensorPin).then();
+                document.getElementById('speedometer.sensorBackwardMs').value = config.speedometer.sensorBackwardMs;
+            }
+            else
+                window.alert("Load data error: " + await response.text());
+        }
+
+        window.onload = function() { load().then(); };
+
+    </script>
+
+</head>
+<body>
+    <div style="display: flex; justify-content: center">
+    <form action="/motor/configuration" method="POST" class="row g-3" id="motor-config">
+        <table>
+            <tr><td colspan="2" style="font-weight: bold">Motor</td></tr>
+            <tr>
+                <td style="padding-bottom: 0.2em; width: 11.7em"><label for="motor.minPower" class="input-group-text">Minimum power:</label></td>
+                <td style="padding-bottom: 0.2em"><input form="motor-config" name="motor.minPower" type="number" step="1" min="1" max="1023" class="form-control" id="motor.minPower"></td>
+            </tr>
+
+            <tr>
+                <td style="padding-bottom: 0.2em; width: 11.7em"><label for="motor.plusPin" class="input-group-text">Plus pin:</label></td>
+                <td style="padding-bottom: 0.2em"><select form="motor-config" name="motor.plusPin" class="form-select" id="motor.plusPin"></select></td>
+            </tr>
+            <tr>
+                <td style="padding-bottom: 0.2em"><label for="motor.minusPin" class="input-group-text">Minus pin:</label></td>
+                <td style="padding-bottom: 0.2em"><select form="motor-config" name="motor.minusPin" class="form-select" id="motor.minusPin"></select></td>
+            </tr>
+            <tr>
+                <td><label for="motor.pwmResolution" class="input-group-text">PWM resolution, bits:</label></td>
+                <td style="text-align: right" ><span class="form-label" id="motor.pwmResolution"></span></td>
+            </tr>
+
+
+            <tr><td style="padding-top: 1em; font-weight: bold" colspan="2">PID regulator</td></tr>
+            <tr>
+                <td style="padding-bottom: 0.2em"><label for="pid.Kp" class="input-group-text">Kp:</label></td>
+                <td style="padding-bottom: 0.2em"><input form="motor-config" name="pid.Kp" type="number" inputmode="decimal" step="0.001" min="0.0" max="10.0" class="form-control" id="pid.Kp"></td>
+            </tr>
+            <tr>
+                <td style="padding-bottom: 0.2em"><label for="pid.Kd" class="input-group-text">Kd:</label></td>
+                <td style="padding-bottom: 0.2em"><input form="motor-config" name="pid.Kd" type="number" inputmode="decimal" step="0.001" min="0.0" max="10.0" class="form-control" id="pid.Kd"></td>
+            </tr>
+            <tr>
+                <td style="padding-bottom: 0.2em"><label for="pid.Ki" class="input-group-text">Ki:</label></td>
+                <td style="padding-bottom: 0.2em"><input form="motor-config" name="pid.Ki" type="number" inputmode="decimal" step="0.001" min="0.0" max="10.0" class="form-control" id="pid.Ki"></td>
+            </tr>
+            <tr>
+                <td style="padding-bottom: 0.2em"><label for="pid.maxError" class="input-group-text">Maximum error:</label></td>
+                <td style="padding-bottom: 0.2em"><input form="motor-config" name="pid.maxError" type="number" inputmode="decimal" step="0.001" min="0.0" class="form-control" id="pid.maxError"></td>
+            <tr>
+                <td><label for="pid.delay" class="input-group-text">Iteration period:</label></td>
+                <td><input form="motor-config" name="pid.delay" type="number" min="10" class="form-control" id="pid.delay"></td>
+            </tr>
+
+
+            <tr><td style="padding-top: 1em; font-weight: bold" colspan="2">Speedometer</td></tr>
+            <tr>
+                <td style="padding-bottom: 0.2em"><label for="speedometer.maxRps" class="input-group-text">Maximum RPS:</label></td>
+                <td style="padding-bottom: 0.2em"><input form="motor-config" name="speedometer.maxRps" type="number" min="0" class="form-control" id="speedometer.maxRps"></td>
+            <tr>
+            <tr>
+                <td style="padding-bottom: 0.2em"><label for="speedometer.mmPerTurn" class="input-group-text">Distance per turn, mm:</label></td>
+                <td style="padding-bottom: 0.2em"><input form="motor-config" name="speedometer.mmPerTurn" type="number" min="0" step="0.01" class="form-control" id="speedometer.mmPerTurn"></td>
+            <tr>
+            <tr>
+                <td style="padding-bottom: 0.2em"><label for="speedometer.pulsePerTurn" class="input-group-text">Pulses per turn:</label></td>
+                <td style="padding-bottom: 0.2em"><input form="motor-config" name="speedometer.pulsePerTurn" type="number" min="1" class="form-control" id="speedometer.pulsePerTurn"></td>
+            <tr>
+            <tr>
+                <td style="padding-bottom: 0.2em"><label for="speedometer.sensorPin" class="input-group-text">Sensor pin:</label></td>
+                <td style="padding-bottom: 0.2em"><select form="motor-config" name="speedometer.sensorPin" class="form-select" id="speedometer.sensorPin"></select></td>
+            </tr>
+            <tr>
+                <td><label for="speedometer.sensorBackwardMs" class="input-group-text">Backward duration, ms:</label></td>
+                <td><input form="motor-config" name="speedometer.sensorBackwardMs" type="number" min="100" class="form-control" id="speedometer.sensorBackwardMs"></td>
+            <tr>
+
+            <tr>
+                <td style="padding-top: 1em; text-align: right" colspan="2"><button type="submit" class="btn btn-primary">Submit</button></td>
+            </tr>
+        </table>
+    </form></div>
+</body>
+</html>

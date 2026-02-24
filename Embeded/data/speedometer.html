@@ -1,0 +1,141 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/html" lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Motor configuration</title>
+
+<!--    <link href="bootstrap/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">-->
+<!--    <script src="bootstrap/bootstrap.min.js" crossorigin="anonymous"></script>-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+    <script src="speedometer/js/fraction.min.js" crossorigin="anonymous"></script>
+    <script src="speedometer/js/speedometer.js" crossorigin="anonymous"></script>
+
+    <script>
+        var speedometer;
+
+        let speed = 0;
+        let tacho = 0;
+        let gas = 0;
+        let mileage = 0;
+
+        let turnSignalsStates = {
+            'left':  false,
+            'right': false
+        };
+
+        var iconsStates = {
+            // main circle
+            'dippedBeam': 0, // противотуманки
+            'brake':      1, // тормоза
+            'drift':      0, // скольжение
+            'highBeam':   0, // свет
+            'lock':       0,
+            'seatBelt':   0,
+            'engineTemp': 0,
+            'stab':       0,
+            'abs':        0,
+            // right circle
+            'gas':        0,
+            'trunk':      0,
+            'bonnet':     0,
+            'doors':      0,
+            // left circle
+            'battery':    0,
+            'oil':        0,
+            'engineFail': 0
+        };
+
+        var speedArray = [];
+        var speedArrayCounter = 0;
+        var currentRps = 0;
+        var currentPower = 0;
+        const speedProbes = 50;
+
+        function floatTask() {
+            var v = 0;
+            var c = 0;
+            const th = (+new Date()) - 2000;
+            for (let i = 0; i < speedProbes; i++) {
+                if (speedArray[i].time >= th) {
+                    v += speedArray[i].speed;
+                    c++;
+                }
+            }
+
+            v = c > 0 ? v / c : 0;
+            if (Math.abs(v) < 0.001)
+                iconsStates.brake = 1;
+
+            speedometer.draw(v, currentRps, currentPower, mileage, turnSignalsStates, iconsStates);
+        }
+
+        var prevSpeed = 0;
+        async function postSpeed() {
+            const value = document.getElementById('speedRange').value;
+
+            if (value !== prevSpeed) {
+                prevSpeed = value;
+                let response = await fetch('/motor/speed?value=' + (value * 1000000 / (3600 * 87)), {method: 'POST'});
+
+                if (!response.ok)
+                    window.alert("post data error: " + await response.text());
+            }
+        }
+
+        async function loadTask() {
+            let response = await fetch('/speedometer/speed', { method: 'GET' });
+
+            if (response.ok) {
+                let speedJson = await response.json();
+
+                speedometer.options.maxSpeed = (speedJson.maxSpeed * 3600 * 87) / 1000000;
+                var maxE = document.getElementById('speedRange');
+
+                if (maxE.max !== speedometer.options.maxSpeed) {
+                    maxE.max = speedometer.options.maxSpeed;
+                    maxE.min = -speedometer.options.maxSpeed;
+                }
+
+                currentRps = speedJson.rps * 60 / 8000;
+                currentPower = speedJson.power;
+
+                speedArray[speedArrayCounter % speedProbes].time = +new Date();
+                speedArray[speedArrayCounter % speedProbes].speed = speedJson.speed / speedJson.maxSpeed;
+                speedArrayCounter++;
+            }
+            else
+                window.alert("Load data error: " + await response.text());
+        }
+
+        window.onload = function() {
+            for (let i = 0; i < speedProbes; i++) {
+                var v = {};
+                v.time = 0;
+                v.speed = 0;
+                speedArray.push(v);
+            }
+
+            speedometer = new Speedometer(document.getElementById('canvas'));
+            speedometer.options.maxSpeed = 60;
+            speedometer.draw(0, 0, 0, 0, turnSignalsStates, iconsStates);
+
+            setInterval(function() { loadTask().catch(console.log); }, 100);
+
+            setInterval(function() { floatTask(); }, 30);
+
+            setInterval(function() { postSpeed(); }, 500);
+        };
+    </script>
+</head>
+<body>
+    <label for="speedRange" class="form-label">Скорость</label>
+    <input type="range" class="form-range" id="speedRange" min="0" max=0 step="1">
+    <div style="display: flex; justify-content: center" id="speedometer">
+        <div style="display: none;"><img id="sprite" src="speedometer/assets/icons.svg"></div>
+        <canvas id="canvas" width="425" height="210"></canvas>
+    </div>
+</body>
+</html>
