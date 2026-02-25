@@ -1,86 +1,82 @@
-#include "logger.hpp"
-#include "Udp.hpp"
+#include "esp_compiler.h"
+#include "HardwareSerial.h"
+#include <udp/udp.h>
+#include <Arduino.h>
 
-static const char UDP_LOG[] PROGMEM = "UDP";
+void IRAM_ATTR UDPSender::flushBuffer() noexcept {
+    if (likely(bufferOffset > 0)) {
+        IPAddress address;
+        uint16_t port;
 
-void Udp::receive(AsyncUDPPacket& packet) noexcept {
-  // SP_LOGI(UDP_LOG, "Udp packet type: %s, remote ip: %s, local ip: %s, length=%d", 
-  //               packet.isBroadcast() ? "Broadcast" : (packet.isMulticast() ? "Multicast" : "Unicast"),
-  //               packet.remoteIP().toString().c_str(), packet.localIP().toString().c_str(), (int)packet.length());
-
-  if ((uint32_t)packet.remoteIP() != localIp) {
-    const UDP_MESSAGE *message = (const UDP_MESSAGE*)packet.data();
-    const size_t length = packet.length();
-
-    if (message->code > 0) {
-      if (message->code == UDP_MESSAGE_ARRAY) {
-        UDP_ARRAY_MESSAGE& array = (UDP_ARRAY_MESSAGE&)message;
-        const uint8_t *ptr = array.data;
-        for (uint16_t i = 0; i < array.count; i++) {
-          const UDP_ARRAY_MESSAGE_ITEM &item = *(const UDP_ARRAY_MESSAGE_ITEM*)ptr;
-          const UDP_MESSAGE &submessage = *(const UDP_MESSAGE*)item.data;
-          const uint16_t len = item.length;
-          
-          if (submessage.code > 0 && submessage.code != UDP_MESSAGE_ARRAY)
-            handlers.iterate([submessage, len] (UdpPacketHandlerFunction& func) { func(submessage, len); });
-
-          ptr = item.data + item.length;
+        if (likely(udpIpCallbackFunc(&address, &port))) {
+            if (unlikely(broadcast))
+                asyncUDP.broadcastTo(sendBuffer, bufferOffset, port);
+            else
+                asyncUDP.writeTo(sendBuffer, bufferOffset, address, port);
         }
-      }
-      else
-        handlers.iterate([message, length] (UdpPacketHandlerFunction& func) { func(*message, length); });
+
+        bufferOffset = 0;
     }
-  }
 }
 
-bool Udp::begin(const IPAddress ip, uint16_t port, const IPAddress locIp, const char *hostname) noexcept {
-  if (started) {
-    if (this->ip == ip && this->port == port)
-      return true;
+bool IRAM_ATTR UDPSender::pushToBuffer(UDP_MESSAGE_DATA &data) noexcept {
+    auto offsetData = bufferOffset + 2;
 
-    end();
-  }
+    if (likely(offsetData < sizeof(sendBuffer))) {
+        auto length = data.callback(data.args, sendBuffer + offsetData, sizeof(sendBuffer) - offsetData);
 
-  localIp = locIp;
-  this->ip = ip;
-  this->port = port;
+        if (likely(length >= 0)) {
+            if (likely(length > 0)) {
+                *(uint16_t*) (sendBuffer + bufferOffset) = (uint16_t) length;
+                bufferOffset = offsetData + length;
+            }
 
-  if (ip[0] == 224) {
-    // group
-    if (listenMulticast(ip, port)) {
-      onPacket([this] (AsyncUDPPacket packet) { receive(packet); });
-
-      AsyncUDPMessage message;
-      uint16_t code = UDP_HANDSHAKE_CODE;
-      message.write((uint8_t*)&code, 2);
-      message.write((uint8_t*)&localIp, 4);
-
-      if (hostname)
-        message.write((const uint8_t*)hostname, strlen(hostname));
-      else
-        message.write((const uint8_t*)"", 1);
-        
-
-      SP_LOGI(UDP_LOG, "Send handshake message: %d", (int)sendTo(message, ip, port));
-
-      return started = true;
+            return true;
+        }
     }
-    else
-      SP_LOGE(UDP_LOG, "listenMulticast(): %s", ip.toString().c_str());
-  }
-  else {
-    // if (listen(port)) {
-    //   onPacket([this] (AsyncUDPPacket packet) { receive(packet); });
-    // }
-    // else
-    //   SP_LOGE(UDP_LOG, "listen()");
-    return started = true;
-  }
 
-  return started = false;
+    return false;
 }
 
-void Udp::end() noexcept {
-  close();
-  started = false;
+void IRAM_ATTR UDPSender::task() noexcept {
+    UDP_MESSAGE_DATA data;
+
+    do {
+        if (receiveQueueItem(&data)) {
+            pushToBuffer(data);
+
+            while (receiveQueueItem(&data, 0)) {
+                while (!pushToBuffer(data))
+                    flushBuffer();
+            }
+
+            flushBuffer();
+        }
+    } while (true);
+}
+
+bool IRAM_ATTR UDPSender::sendFromISR(UdpCallbackFunc callback, void *args) noexcept {
+    UDP_MESSAGE_DATA data = { callback, args };
+
+    return xQueueSend(queue, &data, 0) == pdPASS;
+}
+
+typedef std::function<void(IPAddress& remoteIP, uint8_t messageType, uint8_t *buffer, size_t length, void *args)> UdpPacketFunc;
+
+void parsePacket(AsyncUDPPacket &packet, UdpPacketFunc callback, void *arg) noexcept {
+    uint8_t *data = packet.data();
+    size_t length = packet.length();
+    IPAddress remoteIp = packet.remoteIP();
+
+    while (likely(length >= sizeof(uint16_t))) {
+        length -= sizeof(uint16_t);
+        const size_t messageLen = std::min((size_t) (*(uint16_t*) data), length);
+        data += sizeof(uint16_t);
+
+        if (likely(messageLen > 0)) {
+            callback(remoteIp, *data, data + 1, messageLen - 1, arg);
+            length -= messageLen;
+            data += messageLen;
+        }
+    }
 }

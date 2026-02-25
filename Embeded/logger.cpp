@@ -1,104 +1,80 @@
-#include "logger.hpp"
+#include "HardwareSerial.h"
+#include <string.h>
+#include <logger/logger.h>
+#include <Arduino.h>
+#include <utils/Utils.h>
 
-#define LOG_HEADER_SIZE 70
-
-#define MAX_LOG_SIZE 512
-#define MAX_LOGS 25
-
-static const char level_names[] PROGMEM = {
+const char level_names[] = {
   "DIWE"
 };
 
-void Logger::logTask(void *args) noexcept {
-  Logger& logger = *(Logger*)args;
-  static struct tm t;
+Logger *currentLogger = nullptr;
 
-  while(true) {
-    MemoryBufferHolder holder;
+void IRAM_ATTR Logger::task() noexcept {
+    do {
+        PtrHolder<LogData> holder;
+        
+        if (receiveQueueItem(&holder)) {
+            for (LogWriter **logWriters = writers; *logWriters; logWriters++)
+                (*logWriters)->log(holder);
+        }
+    } while (true);
+}
 
-    if (xQueueReceive(logger.queue, &holder, portMAX_DELAY)) {
-      LOG_DATA* const data = (LOG_DATA*)holder.ptr();
+void IRAM_ATTR Logger::log(uint level, const char *tag, const char *format, ... ) noexcept {
+    auto logDataHolder = pool.poll();
 
-      if (logger.level | SP_LOG_UDP) {
-        const char * const hostname = logger.config.getHostname();
+    if (likely(logDataHolder.isAllocated())) {
+        logDataHolder.accure(1);
+        LogData * const logData = logDataHolder.ptr();
 
-        logger.udp.writeTo(sizeof(UDP_LOG_MESSAGE) + s_len(logger.config.getHostname()) + s_len(data->tag) + data->length + 2, [hostname, data] (void *ptr, size_t maxLen) {
-            UDP_LOG_MESSAGE *msg = (UDP_LOG_MESSAGE*)ptr;
-            msg->code = UDP_LOG_CODE;
-            msg->level = level_names[data->level];
-            msg->stamp = 1000 * ((uint64_t)data->time.tv_sec) + data->time.tv_usec / 1000;
+        logData->timeMs = currentTimeMillis();
+        logData->core = (uint8_t) xPortGetCoreID();
+        logData->priority = (int8_t) (((int)uxTaskPriorityGet(NULL)) - NORMAL_TASK_PRIORITY);
+        logData->level = (uint8_t) level;
+        logData->tag = tag;
 
-            memcpy(copy_str(copy_str(msg->data, hostname) + 1, data->tag) + 1, data->data, data->length);
-        });
-      }
+        va_list args;
+        va_start(args, format);
+        logData->messageLength = vsnprintf(logData->message, LOG_DATA_SIZE, format, args);
+        va_end(args);
 
-      if (logger.level | SP_LOG_CONSOLE) {
-        t = *localtime(&data->time.tv_sec);
-        Serial.printf("%.2d.%.2d.%.4d %.2d:%.2d:%.2d,%.3d [%c] [%s] ", t.tm_mday, t.tm_mon + 1, t.tm_year + 1900, t.tm_hour, t.tm_min, t.tm_sec, 
-                                            (int)(data->time.tv_usec / 1000), level_names[data->level], data->tag);
-                                          
-        Serial.write(data->data, data->length);
-        Serial.println();
-      }       
+        sendQueueItem(&logDataHolder);
     }
-  }
 }
 
-Logger *currentLogger = NULL;
+void ConsoleLogger::log(PtrHolder<LogData>& holder) noexcept {
+    static struct tm t;
 
-Logger(uint type, Configuration& config, uint numWriters, ...) noexcept :
-        type(type),
-        config(c),
-        level(SP_LOG_LEVEL_INFO),
-        memoryPool(MAX_LOG_SIZE + sizeof(LOG_DATA), MAX_LOGS) {
-  currentLogger = this;
+    LogData *data = holder.ptr();
 
-  if (type | SP_LOG_CONSOLE)
-    Serial.begin(115200);
-
-  queue = xQueueCreate(MAX_LOGS, sizeof(MemoryBufferHolder));
-  xTaskCreate(logTask, "LOG", 4096, this, tskIDLE_PRIORITY, &taskHandle);
+    const time_t time = (time_t) divBy1000(data->timeMs);
+    t = *localtime(&time);
+    Serial.printf("%.2d.%.2d.%.4d %.2d:%.2d:%.2d,%.3d [%.1d] [%+.2d] [%c] [%s] ", t.tm_mday, t.tm_mon + 1, t.tm_year + 1900, t.tm_hour, t.tm_min, t.tm_sec, 
+                                    (int) (data->timeMs % 1000), (int)(data->core), (int)(data->priority), level_names[data->level], data->tag);
+                                    
+    Serial.write(data->message, data->messageLength);
+    Serial.println();
 }
 
-void Logger::log(uint level, const char *tag, const char *format, ... ) noexcept {
-  if (level) {
-    MemoryBufferHolder holder = memoryPool.accure(2);
+void UdpLogger::log(PtrHolder<LogData>& holder) noexcept {
+    holder.accure(1);
 
-    if (holder.isAllocated()) {
-      LOG_DATA * const data = (LOG_DATA*) holder.ptr();
-
-      gettimeofday(&data->time, NULL);
-      data->level = (uint8_t)level;
-      data->tag = tag;
-
-      va_list args;
-      va_start(args, format);
-      data->length = vsnprintf(data->data, MAX_LOG_SIZE, format, args);
-      va_end(args);
-
-      xQueueSend(queue, &holder, 0);
-    }
-  }
+    if (!sender.send(callbackStatic, holder.ptr()))
+        holder.release();
 }
 
-void Logger::logISR(uint level, const char *tag, const char *format, ... ) noexcept {
-  if (level) {
-    MemoryBufferHolder holder = memoryPool.accure(2);
+int16_t IRAM_ATTR UdpLogger::callbackStatic(void *args, uint8_t *buffer, size_t maxLen) {
+    PtrHolder<LogData> holder((LogData*)args, 0);
+    LogData * const logData = holder.ptr();
 
-    if (holder.isAllocated()) {
-      LOG_DATA * const data = (LOG_DATA*) holder.ptr();
-
-      gettimeofday(&data->time, NULL);
-      data->level = (uint8_t)level;
-      data->tag = tag;
-
-      va_list args;
-      va_start(args, format);
-      data->length = vsnprintf(data->data, MAX_LOG_SIZE, format, args);
-      va_end(args);
-
-      xQueueSendFromISR(queue, &holder, 0);
-    }
-  }
+    return (int16_t) BinarySerializer::serialize(buffer, maxLen,
+        (uint8_t) PACKET_TYPE_LOG,
+        (uint64_t) logData->timeMs,
+        (uint8_t) logData->core,
+        (int8_t) logData->priority,
+        (uint8_t) logData->level,
+        logData->tag,
+        MemBuffer(logData->message, logData->messageLength)
+    );
 }
-
